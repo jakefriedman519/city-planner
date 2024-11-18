@@ -3,7 +3,10 @@ from city_planner_gym import CityPlanningEnv
 
 GRID_SIZE = 10
 CELL_SIZE = 60
-SCREEN_SIZE = GRID_SIZE * CELL_SIZE
+BUFFER = 100
+LEGEND_WIDTH = 150
+SCREEN_WIDTH = GRID_SIZE * CELL_SIZE + LEGEND_WIDTH
+SCREEN_HEIGHT = GRID_SIZE * CELL_SIZE + BUFFER
 FPS = 60
 
 BLACK = (0, 0, 0)
@@ -21,7 +24,7 @@ BUILDING_COLORS = {
 }
 
 pygame.init()
-screen = pygame.display.set_mode((SCREEN_SIZE, SCREEN_SIZE + 100))
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("City Planning")
 clock = pygame.time.Clock()
 
@@ -29,8 +32,8 @@ env = CityPlanningEnv()
 
 
 def draw_grid():
-    for x in range(0, SCREEN_SIZE, CELL_SIZE):
-        for y in range(100, SCREEN_SIZE + 100, CELL_SIZE):
+    for x in range(0, GRID_SIZE * CELL_SIZE, CELL_SIZE):
+        for y in range(BUFFER, SCREEN_HEIGHT, CELL_SIZE):
             rect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE)
             pygame.draw.rect(screen, BLACK, rect, 1)
 
@@ -38,12 +41,34 @@ def draw_grid():
 def draw_buildings(grid):
     for i in range(GRID_SIZE):
         for j in range(GRID_SIZE):
-            rect = pygame.Rect(j * CELL_SIZE, i * CELL_SIZE + 100, CELL_SIZE, CELL_SIZE)
+            rect = pygame.Rect(
+                j * CELL_SIZE, i * CELL_SIZE + BUFFER, CELL_SIZE, CELL_SIZE
+            )
             pygame.draw.rect(screen, BUILDING_COLORS[grid[i, j]], rect)
 
 
 def get_grid_pos(mouse_pos):
-    return (mouse_pos[1] - 100) // CELL_SIZE, mouse_pos[0] // CELL_SIZE
+    return (mouse_pos[1] - BUFFER) // CELL_SIZE, mouse_pos[0] // CELL_SIZE
+
+
+def draw_legend():
+    legend_x = GRID_SIZE * CELL_SIZE + 10
+    legend_y = BUFFER
+    font = pygame.font.Font(None, 24)
+
+    for i, (building_type, color) in enumerate(BUILDING_COLORS.items()):
+        if building_type == 0:
+            continue
+
+        # Draw color box
+        rect = pygame.Rect(legend_x, legend_y + i * 30, 20, 20)
+        pygame.draw.rect(screen, color, rect)
+        pygame.draw.rect(screen, BLACK, rect, 1)
+
+        # Draw building type text
+        building_name = env.building_map[building_type - 1]
+        text = font.render(building_name, True, BLACK)
+        screen.blit(text, (legend_x + 30, legend_y + i * 30))
 
 
 def main():
@@ -80,6 +105,7 @@ def main():
 
         draw_buildings(env.grid)
         draw_grid()
+        draw_legend()
 
         pygame.display.flip()
         clock.tick(FPS)
