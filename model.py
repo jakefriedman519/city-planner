@@ -8,7 +8,7 @@ from city_planner_gym import CityPlanningEnv
 
 # Initialize environment
 env = CityPlanningEnv()
-gui = False
+gui = True
 
 if gui:
     setup()
@@ -32,6 +32,7 @@ min_exploration_prob = 0.05
 num_episodes = 200
 max_steps_per_episode = 100
 
+
 # cast for proper
 def castStates(state):
     state = np.expand_dims(state, axis=0)
@@ -39,7 +40,8 @@ def castStates(state):
     state = tf.cast(state, dtype=tf.float32)
     return state
 
-os.system('cls' if os.name == 'nt' else 'clear')
+
+os.system("cls" if os.name == "nt" else "clear")
 
 # Training loop
 for episode in range(num_episodes):
@@ -51,12 +53,13 @@ for episode in range(num_episodes):
         grid_state = castStates(state["grid"])
         budget_state = castStates(state["budget"])
 
-        
         # Choose action
         if np.random.rand() < exploration_prob:
             action = env.action_space.sample()  # Random exploration
         else:
-            q_values = dql_agent.predict({"grid_input": grid_state, "budget_input": budget_state})
+            q_values = dql_agent.predict(
+                {"grid_input": grid_state, "budget_input": budget_state}
+            )
             action = np.unravel_index(np.argmax(q_values), env.action_space.nvec)
 
         # Take action
@@ -68,8 +71,12 @@ for episode in range(num_episodes):
 
         # Calculate target Q-values using the Bellman equation
         with tf.GradientTape() as tape:
-            current_q_values = dql_agent({"grid_input": grid_state, "budget_input": budget_state})
-            next_q_values = dql_agent({"grid_input": next_grid_state, "budget_input": next_budget_state})
+            current_q_values = dql_agent(
+                {"grid_input": grid_state, "budget_input": budget_state}
+            )
+            next_q_values = dql_agent(
+                {"grid_input": next_grid_state, "budget_input": next_budget_state}
+            )
             max_next_q = tf.reduce_max(next_q_values, axis=-1)
             target_q_values = current_q_values.numpy()
             target_q_values[0, np.ravel_multi_index(action, env.action_space.nvec)] = (
@@ -88,6 +95,7 @@ for episode in range(num_episodes):
         if gui:
             refresh(state, reward, done, info)
             pygame.display.update()
+            pygame.event.pump()
 
         if done:
             print
@@ -102,7 +110,9 @@ for episode in range(num_episodes):
 # Save the model
 dql_agent.save("city_planning_dql_model.keras")
 
-dql_agent = tf.keras.models.load_model("city_planning_dql_model.keras", custom_objects={'DQL': DQL})
+dql_agent = tf.keras.models.load_model(
+    "city_planning_dql_model.keras", custom_objects={"DQL": DQL}
+)
 
 # Evaluation loop
 num_eval_episodes = 100
@@ -118,16 +128,16 @@ for _ in range(num_eval_episodes):
         # Ensure the state is in the correct shape (batch size of 1)
         grid_state = castStates(state["grid"])  # Adding batch dimension
         budget_state = castStates(state["budget"])  # Adding batch dimension
-        
+
         # Get the Q-values from the trained model
         q_values = dql_agent({"grid_input": grid_state, "budget_input": budget_state})
-        
+
         # Choose the action with the highest Q-value
         action = np.unravel_index(np.argmax(q_values), env.action_space.nvec)
-        
+
         # Take the chosen action and observe the next state and reward
         next_state, reward, done, info = env.step(action)
-        
+
         eval_reward += reward
         state = next_state
 

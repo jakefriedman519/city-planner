@@ -19,12 +19,12 @@ BLUE = (0, 0, 255)
 
 BUILDING_COLORS = {
     0: (255, 255, 255),  # Empty
-    1: (255, 0, 0),      # School
-    2: (0, 255, 0),      # Hospital
-    3: (0, 0, 255),      # Factory
-    4: (255, 255, 0),    # Residential
-    5: (0, 255, 255),    # Park
-    6: (255, 0, 255),    # Restaurant
+    1: (255, 0, 0),  # School
+    2: (0, 255, 0),  # Hospital
+    3: (0, 0, 255),  # Factory
+    4: (255, 255, 0),  # Residential
+    5: (0, 255, 255),  # Park
+    6: (255, 0, 255),  # Restaurant
 }
 
 # Global variables
@@ -34,10 +34,9 @@ env = None
 current_building = 0
 action_results = [None] * 5
 
+
 def setup():
     global screen, clock, env
-
-    print("SETUP CALLED!")
 
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -45,20 +44,26 @@ def setup():
     clock = pygame.time.Clock()
     env = CityPlanningEnv()
 
+
 def draw_grid():
     for x in range(0, GRID_SIZE * CELL_SIZE, CELL_SIZE):
         for y in range(BUFFER, SCREEN_HEIGHT, CELL_SIZE):
             rect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE)
             pygame.draw.rect(screen, BLACK, rect, 1)
 
+
 def draw_buildings(grid):
     for i in range(GRID_SIZE):
         for j in range(GRID_SIZE):
-            rect = pygame.Rect(j * CELL_SIZE, i * CELL_SIZE + BUFFER, CELL_SIZE, CELL_SIZE)
+            rect = pygame.Rect(
+                j * CELL_SIZE, i * CELL_SIZE + BUFFER, CELL_SIZE, CELL_SIZE
+            )
             pygame.draw.rect(screen, BUILDING_COLORS[grid[i, j]], rect)
+
 
 def get_grid_pos(mouse_pos):
     return (mouse_pos[1] - BUFFER) // CELL_SIZE, mouse_pos[0] // CELL_SIZE
+
 
 def draw_legend():
     legend_x = GRID_SIZE * CELL_SIZE + 10
@@ -75,14 +80,18 @@ def draw_legend():
         text = font.render(building_name, True, BLACK)
         screen.blit(text, (legend_x + 30, legend_y + i * 30))
 
-def draw_info():
+
+def draw_info(budget):
     font = pygame.font.Font(None, 36)
-    budget_text = font.render(f"Budget: ${env.remaining_budget}", True, BLACK)
+    budget_text = font.render(f"Budget: ${budget}", True, BLACK)
     screen.blit(budget_text, (10, 10))
 
     building = env.building_map[current_building]
-    building_text = font.render(f"Current: {building}, Price: {env.building_costs[building]}", True, BLACK)
+    building_text = font.render(
+        f"Current: {building}, Price: {env.building_costs[building]}", True, BLACK
+    )
     screen.blit(building_text, (10, 50))
+
 
 def draw_console():
     font = pygame.font.Font(None, 30)
@@ -96,6 +105,7 @@ def draw_console():
             result_surface = font.render(result, True, BLACK)
             screen.blit(result_surface, (10, y_offset))
             y_offset += 60
+
 
 def main():
     global current_building, action_results
@@ -120,7 +130,7 @@ def main():
         draw_buildings(env.grid)
         draw_grid()
         draw_legend()
-        draw_info()
+        draw_info(env.remaining_budget)
         draw_console()
 
         pygame.display.flip()
@@ -129,23 +139,29 @@ def main():
     pygame.quit()
     sys.exit()
 
+
 def refresh(obs, reward, done, info, delay=0.1):
     global action_results
     action = info.get("action", "None")
-    result = f"Action: {action}, Reward: {reward}, Done: {done}"
+    result = (
+        f"Action: {action}, Reward: {reward}, Done: {done}"
+        if action is not None
+        else f"Reward: {reward}, Done: {done}"
+    )
     action_results.pop(0)
     action_results.append(result)
 
     screen.fill(WHITE)
-    draw_buildings(env.grid)
+    draw_buildings(obs["grid"])
     draw_grid()
     draw_legend()
-    draw_info()
+    draw_info(obs["budget"])
     draw_console()
 
     pygame.display.flip()
     clock.tick(60)
     time.sleep(delay)
+
 
 if __name__ == "__main__":
     setup()

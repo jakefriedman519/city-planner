@@ -2,9 +2,12 @@ import numpy as np
 import tensorflow as tf
 import gym
 
+
 class DQL(tf.keras.Model):
     def __init__(self, num_actions, grid_shape, budget_shape, **kwargs):
-        super(DQL, self).__init__(**kwargs)  # Pass any additional kwargs to the parent constructor
+        super(DQL, self).__init__(
+            **kwargs
+        )  # Pass any additional kwargs to the parent constructor
         self.num_actions = num_actions
         self.grid_input = tf.keras.Input(shape=grid_shape, name="grid_input")
         self.budget_input = tf.keras.Input(shape=budget_shape, name="budget_input")
@@ -17,7 +20,7 @@ class DQL(tf.keras.Model):
         # Dense layers for combining grid and budget inputs
         self.dense1 = tf.keras.layers.Dense(128, activation="relu")
         self.output_layer = tf.keras.layers.Dense(num_actions, activation="linear")
-    
+
     def call(self, inputs):
         # Inputs: a dictionary with keys "grid_input" and "budget_input"
         grid_input = inputs["grid_input"]
@@ -40,11 +43,17 @@ class DQL(tf.keras.Model):
         # Get the configuration of the model to save it
         config = super(DQL, self).get_config()
         # Add any additional configuration parameters that might be used for deserialization
-        config.update({
-            "num_actions": self.num_actions,
-            "grid_shape": self.grid_input.shape[1:],  # Exclude the batch size dimension
-            "budget_shape": self.budget_input.shape[1:],  # Exclude the batch size dimension
-        })
+        config.update(
+            {
+                "num_actions": self.num_actions,
+                "grid_shape": self.grid_input.shape[
+                    1:
+                ],  # Exclude the batch size dimension
+                "budget_shape": self.budget_input.shape[
+                    1:
+                ],  # Exclude the batch size dimension
+            }
+        )
         return config
 
     @classmethod
@@ -53,5 +62,5 @@ class DQL(tf.keras.Model):
         return cls(
             num_actions=config["num_actions"],
             grid_shape=config["grid_shape"],
-            budget_shape=config["budget_shape"]
+            budget_shape=config["budget_shape"],
         )
