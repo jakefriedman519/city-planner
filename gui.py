@@ -32,7 +32,7 @@ screen = None
 clock = None
 env = None
 current_building = 0
-action_results = [None] * 5
+action_results = [None] * 1
 
 
 def setup():
