@@ -36,6 +36,9 @@ action_results = [None] * 5
 
 def setup():
     global screen, clock, env
+
+    print("SETUP CALLED!")
+
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("City Planning")

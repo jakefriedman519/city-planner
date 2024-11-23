@@ -1,11 +1,17 @@
+import os
+import pygame
 import tensorflow as tf
 import numpy as np
 from dql import *
-from gui import *
+from gui import setup, refresh, main
 from city_planner_gym import CityPlanningEnv
 
 # Initialize environment
 env = CityPlanningEnv()
+gui = False
+
+if gui:
+    setup()
 
 # Action space and state dimensions
 num_actions = env.action_space.nvec.prod()  # Total possible actions
@@ -33,6 +39,8 @@ def castStates(state):
     state = tf.cast(state, dtype=tf.float32)
     return state
 
+os.system('cls' if os.name == 'nt' else 'clear')
+
 # Training loop
 for episode in range(num_episodes):
     state = env.reset()
@@ -52,7 +60,7 @@ for episode in range(num_episodes):
             action = np.unravel_index(np.argmax(q_values), env.action_space.nvec)
 
         # Take action
-        next_state, reward, done, _ = env.step(action)
+        next_state, reward, done, info = env.step(action)
 
         # Prepare next state inputs
         next_grid_state = castStates(next_state["grid"])
@@ -76,6 +84,10 @@ for episode in range(num_episodes):
         # Update state and reward
         state = next_state
         episode_reward += reward
+
+        if gui:
+            refresh(state, reward, done, info)
+            pygame.display.update()
 
         if done:
             print
@@ -114,7 +126,7 @@ for _ in range(num_eval_episodes):
         action = np.unravel_index(np.argmax(q_values), env.action_space.nvec)
         
         # Take the chosen action and observe the next state and reward
-        next_state, reward, done, _ = env.step(action)
+        next_state, reward, done, info = env.step(action)
         
         eval_reward += reward
         state = next_state
@@ -128,3 +140,5 @@ for _ in range(num_eval_episodes):
 # Calculate and print the average reward over all evaluation episodes
 average_eval_reward = np.mean(eval_rewards)
 print(f"Average Evaluation Reward: {average_eval_reward}")
+
+main()
