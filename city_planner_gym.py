@@ -31,23 +31,23 @@ class CityPlanningEnv(gym.Env):
 
         # Reward parameters
         self.rewards = {
-            "school_residential": 100,
-            "hospital_residential": 50,
-            "park_existence": 10,
-            "hospital_school": 20,
-            "residential_restaurant": 5,
-            "factory_existence": 50,
-            "school_existence": 50,
-            "hospital_existence": 50,
-            "residential_existence": 100,
-            "restaurant_existence": 25,
+            "school_residential": 150,
+            "hospital_residential": 100,
+            "park_existence": 5,
+            "hospital_school": 50,
+            "residential_restaurant": 20,
+            "factory_existence": 10,
+            "school_existence": 10,
+            "hospital_existence": 10,
+            "residential_existence": 25,
+            "restaurant_existence": 15,
         }
 
         # Penalties
         self.penalties = {
             "school_factory": -250,
             "residential_factory": -150,
-            "same_building_adjacent": -25,
+            "same_building_adjacent": -50,
         }
 
         # Define action and observation spaces
@@ -101,7 +101,7 @@ class CityPlanningEnv(gym.Env):
             self.remaining_budget -= self.building_costs[building_name]
             reward = self._calculate_reward(row, col, building_type)
         else:
-            reward = -10  # Penalty for an invalid move
+            reward = -50  # Penalty for an invalid move
 
         # Check if budget is exhausted or grid is full
         self.done = self.remaining_budget <= 0 or np.all(self.grid)
