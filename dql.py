@@ -1,10 +1,8 @@
 import numpy as np
 import tensorflow as tf
 import gym
-
-
 class DQL(tf.keras.Model):
-    def __init__(self, num_actions, grid_shape, budget_shape, **kwargs):
+    def __init__(self, num_actions, grid_shape, budget_shape, **kwargs): 
         super(DQL, self).__init__(
             **kwargs
         )  # Pass any additional kwargs to the parent constructor
@@ -12,13 +10,18 @@ class DQL(tf.keras.Model):
         self.grid_input = tf.keras.Input(shape=grid_shape, name="grid_input")
         self.budget_input = tf.keras.Input(shape=budget_shape, name="budget_input")
 
+        # Initialization
+        initializer = tf.keras.initializers.HeNormal()
+
         # Convolutional layers for grid processing
-        self.conv1 = tf.keras.layers.Conv2D(32, (3, 3), activation="relu")
-        self.conv2 = tf.keras.layers.Conv2D(64, (3, 3), activation="relu")
+        self.conv1 = tf.keras.layers.Conv2D(32, (3, 3), activation="relu", kernel_initializer=initializer)
+        self.conv2 = tf.keras.layers.Conv2D(64, (3, 3), activation="relu", kernel_initializer=initializer)
         self.flatten = tf.keras.layers.Flatten()
 
         # Dense layers for combining grid and budget inputs
-        self.dense1 = tf.keras.layers.Dense(128, activation="relu")
+        self.dense1 = tf.keras.layers.Dense(32, activation="relu", kernel_initializer=initializer)
+        self.dropout = tf.keras.layers.Dropout(rate=0.2)
+        self.dense2 = tf.keras.layers.Dense(64, activation="relu", kernel_initializer=initializer)
         self.output_layer = tf.keras.layers.Dense(num_actions, activation="linear")
 
     def call(self, inputs):
@@ -36,6 +39,8 @@ class DQL(tf.keras.Model):
 
         # Pass through dense layers to get the output
         x = self.dense1(combined)
+        x = self.dropout(x)
+        x = self.dense2(x)
         output = self.output_layer(x)
         return output
 

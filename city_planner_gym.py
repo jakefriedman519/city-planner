@@ -114,16 +114,19 @@ class CityPlanningEnv(gym.Env):
         if building_type == 0:  # School
             reward += self.rewards["school_existence"]
             reward += (
-                self._check_nearby(row, col, 2, 1) * self.rewards["school_residential"]
+                self._check_nearby(row, col, 2, 3) * self.rewards["school_residential"]
             )
             reward += (
                 self._check_nearby(row, col, 3, 4) * self.penalties["school_factory"]
+            )
+            reward += (
+                self._check_nearby(row, col, 3, 1) * self.rewards["hospital_school"]
             )
 
         elif building_type == 1:  # Hospital
             reward += self.rewards["hospital_existence"]
             reward += (
-                self._check_nearby(row, col, 4, 1)
+                self._check_nearby(row, col, 4, 3)
                 * self.rewards["hospital_residential"]
             )
             reward += (
@@ -133,8 +136,11 @@ class CityPlanningEnv(gym.Env):
         elif building_type == 2:  # Factory
             reward += self.rewards["factory_existence"]
             reward += (
-                self._check_nearby(row, col, 2, 1)
+                self._check_nearby(row, col, 2, 3)
                 * self.penalties["residential_factory"]
+            )
+            reward += (
+                self._check_nearby(row, col, 3, 0) * self.penalties["school_factory"]
             )
 
         elif building_type == 3:  # Residential
@@ -143,12 +149,27 @@ class CityPlanningEnv(gym.Env):
                 self._check_nearby(row, col, 2, 5)
                 * self.rewards["residential_restaurant"]
             )
+            reward += (
+                self._check_nearby(row, col, 2, 0) * self.rewards["school_residential"]
+            )
+            reward += (
+                self._check_nearby(row, col, 4, 1)
+                * self.rewards["hospital_residential"]
+            )
+            reward += (
+                self._check_nearby(row, col, 2, 2)
+                * self.penalties["residential_factory"]
+            )
 
         elif building_type == 4:  # Park
             reward += self.rewards["park_existence"]
 
         elif building_type == 5:  # Restaurant
             reward += self.rewards["restaurant_existence"]
+            reward += (
+                self._check_nearby(row, col, 2, 3)
+                * self.rewards["residential_restaurant"]
+            )
 
         # Check for adjacent same-type building penalty (excluding Residential and Restaurant)
         if building_type not in {3, 5}:
