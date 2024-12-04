@@ -26,7 +26,7 @@ dql_agent = DQL(num_actions, grid_shape, budget_shape)
 target_dql_agent = DQL(num_actions, grid_shape, budget_shape)
 target_dql_agent.set_weights(dql_agent.get_weights())
 
-learning_rate = 0.001
+learning_rate = 0.0001
 loss_fn = tf.keras.losses.MeanSquaredError()
 optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
 
@@ -35,14 +35,14 @@ discount_factor = 0.99
 exploration_prob = 1.0
 exploration_decay = 0.995
 min_exploration_prob = 0.01
-num_episodes = 200
+num_episodes = 500
 max_steps_per_episode = 100
 update_target_frequency = 5
 episode_rewards = []
 losses = []
 
 
-# cast for proper
+# cast for proper shape size necessary for the network
 def castStates(state):
     state = np.expand_dims(state, axis=0)
     state = np.expand_dims(state, axis=-1)
@@ -136,10 +136,10 @@ for episode in range(num_episodes):
         target_dql_agent.set_weights(dql_agent.get_weights())
 
 # Save the model
-dql_agent.save("city_planning_dql_model_5.keras")
+dql_agent.save("city_planning_dql_model.keras")
 
 eval_agent = tf.keras.models.load_model(
-    "city_planning_dql_model_5.keras", custom_objects={"DQL": DQL}
+    "city_planning_dql_model.keras", custom_objects={"DQL": DQL}
 )
 
 # Evaluation loop
@@ -181,7 +181,7 @@ average_eval_reward = np.mean(eval_rewards)
 print(eval_rewards)
 print(f"Average Evaluation Reward: {average_eval_reward}")
 
-# Plot rewards
+# Plot rewards and losses
 plt.figure(figsize=(10, 6))
 plt.plot(episode_rewards, label="Reward")
 plt.xlabel("Episode")
@@ -192,7 +192,7 @@ plt.legend(loc="best")
 plt.show()
 
 plt.figure(figsize=(10, 6))
-plt.plot(losses, label="Reward")
+plt.plot(losses, label="Loss")
 plt.xlabel("Step")
 plt.ylabel("Loss")
 plt.title("Losses throughout Training")
